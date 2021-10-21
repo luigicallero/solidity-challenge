@@ -36,8 +36,8 @@ truffle migrate -f 2
 ```
 #
 ## Tools used
-- Truffle/Ganache
+- Truffle
 - Remix
 - web3.js/ethers.js
-- VisualCode
+- Visual Studio Code
 - Git
