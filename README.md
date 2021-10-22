@@ -35,6 +35,11 @@ Back to original terminal:
 truffle migrate -f 2
 ```
 #
+## Perform some Tests
+```
+truffle test
+```
+#
 ## Tools used
 - Truffle
 - Remix
