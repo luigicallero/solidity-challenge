@@ -22,7 +22,7 @@ contract('RewardToken and Staker', (accounts) => {
     // 1 Million Million RWT Tokens transfered to Staker Contract
     await RewardTokenContract.transfer(StakerContract.address, tokens('1000000'))
     // Configuring the Rewards to 100 RWT Tokens every 15 seconds (approx every new block)
-    await StakerContract.addRewards( tokens('100'), '15' );
+    await StakerContract.setRewards( tokens('100'), '5' );
   })
 
   describe('Contracts deployment', async () => {
@@ -40,13 +40,10 @@ contract('RewardToken and Staker', (accounts) => {
   
   })
 
-  describe('Investors deposit in staker contract', async () => {
-    it('Investor1 Using deposit function with 1 ETH successfully', async () => {
+  describe('*** Only one Investor depositing in staker contract', async () => {
+    it('Investor1 deposits 1 ETH successfully', async () => {
       let depositAmount = tokens('1')
-      // Account 1 depositing 1 ETH
       await StakerContract.deposit({from: accounts[1], value: depositAmount })
-      // const staked = await RewardTokenContract.balanceOf[ accounts[0] ]
-      //assert.equal( tokens(staked) , tokens('5000'))
     })
 
     it('Investor1 Initial rewards is 0 RWT Tokens', async () => {
@@ -59,33 +56,54 @@ contract('RewardToken and Staker', (accounts) => {
       console.log("Waiting 15s")
       const delay = ms => new Promise(res => setTimeout(res, ms))
       await delay(15000)
+      // only using claim function to update the rewards info
       await StakerContract.claim({ from: accounts[1] });
-      let initialReward = await StakerContract.pendingRewards.call(accounts[1], { from: accounts[1] });
-      console.log( "Reward in RWT tokens: ", web3.utils.fromWei(initialReward))
-      //assert.equal(initialReward.toString(), tokens('100') , "User has rewards pending straight after staking");
+      const initialReward = await StakerContract.pendingRewards.call(accounts[1], { from: accounts[1] });
+      console.log( "Rewards for Inv1 in RWT tokens: ", web3.utils.fromWei(initialReward))
+      const totalStaked = await StakerContract.totalStaked.call();
+      console.log( "Total Staked in ETH: ", web3.utils.fromWei(totalStaked))
     })
-/*
-// Claim rewards using claim(), make sure actual reward balance delta = the correctly calculated pending rewards
-await staker.claim({ from: accounts[1] });
-// Check user rewards balance
-let userNewRewardBalance = await rewardToken.balanceOf(accounts[1], { from: accounts[1] });
-let delta = userNewRewardBalance.sub(prevUserRewardTokenBalance);
-assertEqualWithMargin(delta, expectedPendingReward, contractRps.div(rpsMultiplierBN), "Wrong amount of rewards sent to user after claim()");
-prevUserRewardTokenBalance = userNewRewardBalance;
-// Check contract rewards balance 
-let contractNewRewardBalance = await rewardToken.balanceOf(staker.address, { from: accounts[1] });
-let contractDelta = prevContractRewardTokenBalance.sub(contractNewRewardBalance);
-assert.equal(contractDelta.toString(), expectedPendingReward.toString(), "Contract lost different amount of rewards than should have");
-prevContractRewardTokenBalance = contractNewRewardBalance;
-*/
-
-    // Check other parameters
-
   })
-        /* User stakes funds, make sure no pending rewards yet
-        let depositAmount = web3.utils.toWei("10");
-        await depositToken.approve(staker.address, depositAmount, { from: accounts[1] });
-        await staker.deposit(depositAmount, { from: accounts[1] });
-        */
+
+describe('*** Two Other Investors deposit in staker contract', async () => {
+// There is something after accounts[1] was used in above describe that is not allowing it to stake more ETH  
+  it('Investor2 deposits 1 ETH successfully', async () => {
+    const depositAmount = tokens('1')
+    await StakerContract.deposit({from: accounts[2], value: depositAmount })
+  })
+  
+  it('Investor3 deposits 1 ETH successfully', async () => {
+    let depositAmount = tokens('1')
+    await StakerContract.deposit({from: accounts[3], value: depositAmount })
+  })
+
+  it('Investor2 Initial rewards is 0 RWT Tokens', async () => {
+    let initialReward = await StakerContract.pendingRewards.call(accounts[2], { from: accounts[2] });
+    console.log( "Initial Rewards for Inv2 in RWT tokens: ", web3.utils.fromWei(initialReward))
+    //assert.equal(initialReward.toString(), tokens('100') , "User has rewards pending straight after staking");
+  })
+
+  it('Investor3 Initial rewards is 0 RWT Tokens', async () => {
+    let initialReward = await StakerContract.pendingRewards.call(accounts[3], { from: accounts[3] });
+    assert.equal(initialReward.toString(), 0 , "User has rewards pending straight after staking");
+  })
+
+  it('Investor2 rewards after 15 seconds is now MORE than 100 RWT Tokens', async () => {
+    console.log("Waiting 15s")
+    const delay = ms => new Promise(res => setTimeout(res, ms))
+    await delay(15000)
+    // only using claim function to update the rewards info
+    await StakerContract.claim({ from: accounts[1] });
+    let initialReward = await StakerContract.pendingRewards.call(accounts[2], { from: accounts[2] });
+    console.log( "Rewards for Inv2 in RWT tokens: ", web3.utils.fromWei(initialReward))
+  })
+
+  it('Investor3 rewards after 15 seconds is approx 100 RWT Tokens', async () => {
+    let initialReward2 = await StakerContract.pendingRewards.call(accounts[3], { from: accounts[3] });
+    console.log( "Rewards for Inv3 in RWT tokens: ", web3.utils.fromWei(initialReward2))
+    const totalStaked = await StakerContract.totalStaked.call();
+    console.log( "Total Staked in ETH: ", web3.utils.fromWei(totalStaked))
+  })
+  })
 
 })

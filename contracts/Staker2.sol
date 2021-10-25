@@ -42,7 +42,7 @@ contract Staker2 is Ownable {
     uint256 public lastRewardTimestamp;
     uint256 public accumulatedRewardPerShare; // multiplied by 1e12, same as MasterChef
 
-    event AddRewards(uint256 amount, uint256 lengthInDays);
+    event SetRewards(uint256 amount, uint256 lengthInSeconds);
     event ClaimReward(address indexed user, uint256 amount);
     event Deposit(address indexed user, uint256 amount);
     event Withdraw(address indexed user, uint256 amount);
@@ -54,27 +54,38 @@ contract Staker2 is Ownable {
     }
 
     // Owner should have approved ERC20 before.
-    /*
-        Here I have updated part of addRewards functions to work with seconds instead of days
-    */
-    function addRewards(uint256 _rewardsAmount, uint256 _lengthInSeconds)
+
+/*    function addRewards(uint256 _rewardsAmount, uint256 _lengthInSeconds)
     external onlyOwner {
         require(block.timestamp > rewardPeriodEndTimestamp, "Staker: can't add rewards before period finished");
         updateRewards();
         rewardPeriodEndTimestamp = block.timestamp.add(_lengthInSeconds);
         rewardPerSecond = _rewardsAmount.mul(1e7).div(_lengthInSeconds);
-        /*
-        Here I have changed original require from eattheblocks since the RWT tokens are already all in the Staking Contract
-            require(rewardToken.transferFrom(msg.sender, address(this), _rewardsAmount), "Staker: transfer failed");
-        */
+        
+        //Here I have changed original require from eattheblocks since the RWT tokens are already all in the Staking Contract
+        require(rewardToken.transferFrom(msg.sender, address(this), _rewardsAmount), "Staker: transfer failed");
+        
         emit AddRewards(_rewardsAmount, _lengthInSeconds);
+    }
+*/
+    /*
+    Here I have updated original function addRewards from eattheblocks since all RWT tokens are already in the Staking Contract
+    Function only used to update the reward period and amount
+    Also _lengthInDays replaced with _lengthInSeconds
+    */ 
+    function setRewards(uint256 _rewardsAmount, uint256 _lengthInSeconds) external onlyOwner {
+        //require(block.timestamp > rewardPeriodEndTimestamp, "Staker: can't add rewards before period finished");
+        updateRewards();
+        rewardPeriodEndTimestamp = block.timestamp.add(_lengthInSeconds);
+        rewardPerSecond = _rewardsAmount.mul(1e7).div(_lengthInSeconds);
+        emit SetRewards(_rewardsAmount, _lengthInSeconds);
     }
 
     // Main function to keep a balance of the rewards.
     // Is called before each user action (stake, unstake, claim).
     // See top of file for high level description.
-    function updateRewards()
-    public {
+    // Here I changed it from public to Internal (no sense if it is only called by other functions )
+    function updateRewards() internal {
         // If no staking period active, or already updated rewards after staking ended, or nobody staked anything - nothing to do
         if (block.timestamp <= lastRewardTimestamp) {
             return;
