@@ -1,8 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
+// contracts/Staker.sol
+/* SPDX-License-Identifier: GPL-3.0
+Authored by Luis Ignacio Callero
+With great help from 
+    Greg DappUniversity https://www.youtube.com/watch?v=sCE-fQJAVQ4
+    Austin Griffith https://github.com/scaffold-eth/scaffold-eth/blob/staking-app/packages/hardhat/contracts/Staker.sol
+    https://medium.com/@tnhollan/how-to-implement-staking-in-solidity-cdb1d0506ef6
+*/
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol"; // Here I updated the contract location for solidity 0.8.4
+// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol"; // to be used with remix
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RewardToken.sol";
 
